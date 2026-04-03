@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
@@ -23,6 +24,11 @@ Route::post('/recovery', [AuthController::class, 'recovery']);
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // --- RUTA ESPECÍFICA PARA ORQUESTACIÓN DE PRODUCTOS ---
+    // Esta ruta maneja el flujo completo: FastAPI -> Express -> Flask
+    Route::post('/products', [ProductController::class, 'store']);
+
     /**
      * Esta ruta captura cualquier petición hacia /{servicio}/{ruta}
      * Ejemplo: POST /api/catalog/products -> Redirige al Microservicio de Node.js
