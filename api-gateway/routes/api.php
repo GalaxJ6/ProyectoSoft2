@@ -62,6 +62,21 @@ Route::middleware('auth:sanctum')->group(function () {
             }
         }
 
+        // --- VALIDACIÓN DE REFERENCIA EN CATALOG PARA PRODUCTOS ---
+        if ($service === 'catalog' && in_array(request()->method(), ['POST', 'PUT', 'PATCH'])) {
+            $payload = json_decode(request()->getContent(), true);
+
+            if (!is_array($payload) || empty($payload['user_id'])) {
+                return response()->json(['error' => 'Falta user_id en el cuerpo de la petición'], 400);
+            }
+
+            $userIdForCatalog = intval($payload['user_id']);
+
+            if (!$userIdForCatalog || !User::find($userIdForCatalog)) {
+                return response()->json(['error' => "El usuario con ID $userIdForCatalog no existe en Laravel"], 404);
+            }
+        }
+
         // Construimos la URL final (ej: http://localhost:8001/api/users/profile/1)
         $url = $map[$service] . '/' . $service . '/' . $path;
 
