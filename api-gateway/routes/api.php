@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 
@@ -41,15 +42,46 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['error' => 'El microservicio solicitado no existe'], 404);
         }
 
-        // Construimos la URL final (ej: http://localhost:3000/api/products)
-        $url = $map[$service] . '/' . $path;
+        // --- VALIDACIÓN ESPECÍFICA PARA EL SERVICIO 'users' ---
+        if ($service === 'users' && strpos($path, 'profile/') !== false) {
+            // Extraer el ID del usuario de la ruta (ej: profile/1 -> user_id = 1)
+            preg_match('/profile\/(\d+)/', $path, $matches);
+            
+            if (isset($matches[1])) {
+                $user_id = intval($matches[1]);
+                
+                // Verificar si el usuario existe en la BD de Laravel
+                $user = User::find($user_id);
+                
+                if (!$user) {
+                    return response()->json(
+                        ['error' => "El usuario con ID $user_id no existe en el sistema de Laravel"],
+                        404
+                    );
+                }
+            }
+        }
 
-        // Reenviamos la petición con TODO:
-        // 1. Headers originales (incluyendo el Token)
-        // 2. Método original (GET, POST, PUT, DELETE)
-        // 3. Body original (JSON con los datos)
-        $response = Http::withHeaders(request()->headers->all())
-            ->send(request()->method(), $url, request()->all());
+        // Construimos la URL final (ej: http://localhost:8001/api/users/profile/1)
+        $url = $map[$service] . '/' . $service . '/' . $path;
+
+        // Reenviamos la petición, pero filtramos headers que causan problemas
+        $headers = collect(request()->headers->all())
+            ->except(['host', 'connection', 'content-length'])
+            ->map(fn($value) => $value[0] ?? $value)
+            ->toArray();
+
+        // Preparamos el contenido del cuerpo
+        $body = request()->getContent();
+        
+        // Reenviamos según el método HTTP
+        $client = Http::withHeaders($headers);
+        
+        if (request()->method() === 'GET') {
+            $response = $client->get($url);
+        } else {
+            $response = $client->send(request()->method(), $url, ['body' => $body]);
+        }
 
         // Retornamos la respuesta del microservicio tal cual la recibimos
         return response()->json($response->json(), $response->status());
