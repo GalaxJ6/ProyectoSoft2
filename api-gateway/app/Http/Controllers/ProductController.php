@@ -44,11 +44,15 @@ class ProductController extends Controller
 
             // 4. LLAMADA A FLASK (MS_NOTIFY - Puerto 5000) 
             // Registramos el evento (Log) para cumplir con el 5to microservicio 
-            // Http::post('http://127.0.0.1:5000/api/notify/log', [
-            //     'event'   => 'Producto Creado',
-            //     'user_id' => $data['user_id'],
-            //     'product' => $data['name']
-            // ]);
+            try {
+                Http::post(env('MS_NOTIFY_URL') . '/api/notify/products', [
+                    'user_id' => $data['user_id'],
+                    'action' => 'create',
+                    'query' => $data['name']
+                ]);
+            } catch (\Exception $e) {
+                // Ignoramos errores de log para que no falle toda la transacción
+            }
 
             // 5. RESPUESTA FINAL AL CLIENTE (Thunder Client/Frontend)
             return response()->json([

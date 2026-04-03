@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Profile
+import requests
 
 @api_view(['GET', 'POST'])
 def profile_handler(request, user_id):
@@ -34,6 +35,20 @@ def profile_handler(request, user_id):
                 'address': request.data.get('address', '')
             }
         )
+
+        # Informar a Flask (MS_NOTIFY) sobre cambios en datos de perfil
+        try:
+            requests.post('http://127.0.0.1:5000/api/notify/user-data', json={
+                'user_id': user_id,
+                'action': 'create' if created else 'update',
+                'fields': {
+                    'bio': request.data.get('bio', ''),
+                    'phone': request.data.get('phone', ''),
+                    'address': request.data.get('address', '')
+                }
+            }, timeout=3)
+        except requests.RequestException:
+            pass
         
         return Response({
             "status": "success",
