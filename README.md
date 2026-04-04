@@ -13,6 +13,150 @@ Este proyecto implementa una arquitectura de microservicios para un sistema de g
 
 La arquitectura utiliza comunicación síncrona entre servicios, con validaciones de seguridad y trazabilidad en cada paso.
 
+## Arquitectura del Sistema
+
+```mermaid
+graph TB
+    subgraph "Clientes"
+        A[Usuario Final]
+        B[Locust - Pruebas de Carga]
+    end
+    
+    subgraph "API Gateway (Laravel - PHP)"
+        C[API Gateway<br/>Puerto 8000<br/>Autenticación JWT]
+        C1[Auth Controller<br/>Login/Register/Recovery]
+        C2[Product Controller<br/>Orquestación]
+        C3[Proxy Dinámico<br/>/catalog/* → Express<br/>/users/* → Django<br/>/logic/* → FastAPI<br/>/notify/* → Flask]
+    end
+    
+    subgraph "Microservicios"
+        D[MS Express<br/>Catálogo de Productos<br/>Puerto 3000<br/>Node.js]
+        E[MS Django<br/>Perfiles de Usuarios<br/>Puerto 8001<br/>Python]
+        F[MS FastAPI<br/>Lógica de Negocio<br/>Puerto 8050<br/>Python]
+        G[MS Flask<br/>Notificaciones/Logs<br/>Puerto 5000<br/>Python]
+    end
+    
+    subgraph "Bases de Datos"
+        H[(MySQL<br/>Usuarios<br/>Puerto 3306)]
+        I[(MongoDB<br/>Productos<br/>Puerto 27017)]
+        J[(PostgreSQL<br/>Perfiles<br/>Puerto 5432)]
+    end
+    
+    A --> C
+    B --> C
+    
+    C --> C1
+    C --> C2
+    C --> C3
+    
+    C1 --> H
+    C2 --> F
+    C2 --> D
+    C2 --> G
+    C3 --> D
+    C3 --> E
+    
+    D --> I
+    E --> J
+    
+    style C fill:#e1f5fe
+    style D fill:#f3e5f5
+    style E fill:#f3e5f5
+    style F fill:#f3e5f5
+    style G fill:#f3e5f5
+```
+
+### Flujo de Comunicación
+
+1. **Autenticación**: Usuario → API Gateway → MySQL
+2. **Creación de Producto (Orquestado)**: 
+   - API Gateway → FastAPI (calcular IVA) → API Gateway
+   - API Gateway → Express (guardar producto) → MongoDB
+   - API Gateway → Flask (registrar log)
+3. **Consulta de Catálogo**: Usuario → API Gateway → Express → MongoDB
+4. **Perfil de Usuario**: Usuario → API Gateway → Django → PostgreSQL
+5. **Notificaciones**: Todos los servicios → Flask (logs de auditoría)
+
+### Tecnologías Utilizadas
+
+- **Lenguajes**: PHP (Laravel), JavaScript (Node.js), Python (Django, FastAPI, Flask)
+- **Bases de Datos**: MySQL, MongoDB, PostgreSQL
+- **Autenticación**: JWT con Laravel Sanctum
+- **Comunicación**: HTTP/JSON síncrona
+- **Pruebas**: Locust para carga y estrés
+
+## Arquitectura del Sistema
+
+```mermaid
+graph TB
+    subgraph "Clientes"
+        A[Usuario Final]
+        B[Locust - Pruebas de Carga]
+    end
+    
+    subgraph "API Gateway (Laravel - PHP)"
+        C[API Gateway<br/>Puerto 8000<br/>Autenticación JWT]
+        C1[Auth Controller<br/>Login/Register/Recovery]
+        C2[Product Controller<br/>Orquestación]
+        C3[Proxy Dinámico<br/>/catalog/* → Express<br/>/users/* → Django<br/>/logic/* → FastAPI<br/>/notify/* → Flask]
+    end
+    
+    subgraph "Microservicios"
+        D[MS Express<br/>Catálogo de Productos<br/>Puerto 3000<br/>Node.js]
+        E[MS Django<br/>Perfiles de Usuarios<br/>Puerto 8001<br/>Python]
+        F[MS FastAPI<br/>Lógica de Negocio<br/>Puerto 8050<br/>Python]
+        G[MS Flask<br/>Notificaciones/Logs<br/>Puerto 5000<br/>Python]
+    end
+    
+    subgraph "Bases de Datos"
+        H[(MySQL<br/>Usuarios<br/>Puerto 3306)]
+        I[(MongoDB<br/>Productos<br/>Puerto 27017)]
+        J[(PostgreSQL<br/>Perfiles<br/>Puerto 5432)]
+    end
+    
+    A --> C
+    B --> C
+    
+    C --> C1
+    C --> C2
+    C --> C3
+    
+    C1 --> H
+    C2 --> F
+    C2 --> D
+    C2 --> G
+    C3 --> D
+    C3 --> E
+    
+    D --> I
+    E --> J
+    
+    style C fill:#e1f5fe
+    style D fill:#f3e5f5
+    style E fill:#f3e5f5
+    style F fill:#f3e5f5
+    style G fill:#f3e5f5
+```
+
+### Flujo de Comunicación
+
+1. **Autenticación**: Usuario → API Gateway → MySQL
+2. **Creación de Producto (Orquestado)**: 
+   - API Gateway → FastAPI (calcular IVA) → API Gateway
+   - API Gateway → Express (guardar producto) → MongoDB
+   - API Gateway → Flask (registrar log)
+3. **Consulta de Catálogo**: Usuario → API Gateway → Express → MongoDB
+4. **Perfil de Usuario**: Usuario → API Gateway → Django → PostgreSQL
+5. **Notificaciones**: Todos los servicios → Flask (logs de auditoría)
+
+### Tecnologías Utilizadas
+
+- **Lenguajes**: PHP (Laravel), JavaScript (Node.js), Python (Django, FastAPI, Flask)
+- **Bases de Datos**: MySQL, MongoDB, PostgreSQL
+- **Autenticación**: JWT con Laravel Sanctum
+- **Comunicación**: HTTP/JSON síncrona
+- **Pruebas**: Locust para carga y estrés
+
 ## Documentación de Endpoints
 
 ### API Gateway (Laravel - Puerto 8000)
