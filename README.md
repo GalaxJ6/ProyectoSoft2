@@ -1,3 +1,5 @@
+# *Para ver la arquitectura del proyecto es necesario ver este archivo desde github*
+
 # ProyectoSoft2
 Santiago Fernández Gaona - 1109920531
 
