@@ -6,13 +6,11 @@ const app = express();
 app.use(express.json()); 
 app.use(cors());         
 
-// --- 1. CONEXIÓN A MONGODB ---
 mongoose.connect('mongodb://127.0.0.1:27017/proyecto')
     .then(() => console.log("MongoDB Conectado"))
     .catch(err => console.error("Error de conexión:", err));
 
-// --- 2. DEFINICIÓN DEL ESQUEMA CON VALIDACIONES ---
-// Aquí aplicamos validación de tipos y obligatoriedad 
+
 const ProductSchema = new mongoose.Schema({
     name: { 
         type: String, 
@@ -45,8 +43,7 @@ const ProductSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', ProductSchema);
 
-// --- 3. MIDDLEWARE DE VALIDACIÓN DE SEGURIDAD ---
-// Requisito: "Pruebas de seguridad básicas sobre los servicios" 
+
 const validateProductData = (req, res, next) => {
     const { name, price, user_id } = req.body;
     
@@ -62,9 +59,7 @@ const validateProductData = (req, res, next) => {
     next();
 };
 
-// --- 4. RUTAS FUNCIONALES ---
 
-// Crear un producto (POST) con validación previa
 app.post('/api/catalog/products', validateProductData, async (req, res) => {
     try {
         const nuevoProducto = new Product(req.body);
@@ -83,7 +78,6 @@ app.post('/api/catalog/products', validateProductData, async (req, res) => {
     }
 });
 
-// Listar todos los productos (GET)
 app.get('/api/catalog/products', async (req, res) => {
     try {
         const productos = await Product.find();
@@ -93,7 +87,6 @@ app.get('/api/catalog/products', async (req, res) => {
     }
 });
 
-// --- 5. ENCENDER SERVIDOR ---
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Microservicio Catálogo (Express) listo en puerto ${PORT}`);

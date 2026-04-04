@@ -11,10 +11,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * Campos que se pueden llenar masivamente.
-     * Añadimos los campos de seguridad requeridos.
-     */
+
     protected $fillable = [
         'name',
         'email',
@@ -23,19 +20,14 @@ class User extends Authenticatable
         'security_answer',
     ];
 
-    /**
-     * Campos que se ocultan cuando la API responde (JSON).
-     * Ocultamos la respuesta de seguridad por privacidad.
-     */
+
     protected $hidden = [
         'password',
         'remember_token',
         'security_answer',
     ];
 
-    /**
-     * Define el comportamiento de los datos.
-     */
+
     protected function casts(): array
     {
         return [

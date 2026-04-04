@@ -11,7 +11,7 @@ def make_log(event, user_id, details=None, status='SUCCESS'):
         "details": details,
         "status": status
     }
-    print(f"📂 [LOG EVENT]: {entry}")
+    print(f"[LOG EVENT]: {entry}")
     return entry
 
 

@@ -8,7 +8,6 @@ import requests
 @api_view(['GET', 'POST'])
 def profile_handler(request, user_id):
     
-    # --- MÉTODO GET: Consultar datos de un usuario ---
     if request.method == 'GET':
         try:
             profile = Profile.objects.get(user_id=user_id)
@@ -24,7 +23,6 @@ def profile_handler(request, user_id):
         except Profile.DoesNotExist:
             return Response({"error": "Perfil no encontrado para este usuario"}, status=status.HTTP_404_NOT_FOUND)
 
-    # --- MÉTODO POST: Crear o Actualizar datos de un usuario ---
     if request.method == 'POST':
         # update_or_create busca por user_id, si existe lo actualiza, si no lo crea.
         profile, created = Profile.objects.update_or_create(

@@ -22,7 +22,6 @@ class AuthController extends Controller {
             return response()->json($validator->errors(), 400);
         }
 
-        // 1. Creamos el usuario en MySQL (Laravel)
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -31,23 +30,18 @@ class AuthController extends Controller {
             'security_answer' => Hash::make(strtolower($request->security_answer)),
         ]);
 
-        // --- 🚀 INTEGRACIÓN CON FLASK (MS_NOTIFY) ---
-        // Registramos el evento de creación de usuario para auditoría
         try {
             Http::post(env('MS_NOTIFY_URL') . '/api/notify/login', [
                 'user_id' => $user->id,
                 'username' => $user->email
             ]);
         } catch (\Exception $e) {
-            // Opcional: Loguear el error internamente si Flask está caído
-            // pero permitir que el registro continúe.
         }
-        // --------------------------------------------
 
-        // 2. GENERAMOS EL TOKEN INMEDIATAMENTE
+        // SE GENERA EL TOKEN INMEDIATAMENTE
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // 3. Devolvemos el usuario Y el token
+        // Se devuelve el usuario Y el token
         return response()->json([
             'message' => 'Usuario registrado e iniciado con éxito',
             'access_token' => $token,
@@ -63,14 +57,13 @@ class AuthController extends Controller {
             return response()->json(['msg' => 'Credenciales Fallidas'], 401);
         }
 
-        // Enviar log a Flask (ms_notify)
+        // Enviar log a Flask
         try {
             Http::post(env('MS_NOTIFY_URL') . '/api/notify/login', [
                 'user_id' => $user->id,
                 'username' => $user->email
             ]);
         } catch (\Exception $e) {
-            // Ignorar error de logging para no romper auth
         }
 
         return response()->json([
@@ -96,12 +89,11 @@ class AuthController extends Controller {
             return response()->json(['message' => 'Respuesta de seguridad incorrecta'], 403);
         }
 
-        // 1. Actualizamos la contraseña
         $user->update([
             'password' => Hash::make($request->new_password)
         ]);
 
-        // 2. GENERAMOS EL TOKEN (Igual que en el Register)
+        // SE GENERA EL TOKEN 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         // Log en Flask
@@ -114,7 +106,6 @@ class AuthController extends Controller {
             // Ignorar error de logging
         }
 
-        // 3. Devolvemos éxito Y el nuevo token
         return response()->json([
             'message' => 'Contraseña actualizada y sesión iniciada',
             'access_token' => $token,
@@ -135,7 +126,6 @@ class AuthController extends Controller {
                 'user_id' => $user->id
             ]);
         } catch (\Exception $e) {
-            // Continuar sin bloquear al logout
         }
 
         return response()->json([

@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'proyecto_soft',
         'USER': 'postgres',
-        'PASSWORD': 'A_a08*09',
+        'PASSWORD': '', # <--- Asegúrate de poner tu contraseña de PostgreSQL aquí
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
