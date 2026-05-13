@@ -6,9 +6,12 @@ const app = express();
 app.use(express.json()); 
 app.use(cors());         
 
-mongoose.connect('mongodb://127.0.0.1:27017/proyecto')
-    .then(() => console.log("MongoDB Conectado"))
-    .catch(err => console.error("Error de conexión:", err));
+// Solo conectar a MongoDB si no estamos en ambiente de test
+if (process.env.NODE_ENV !== 'test') {
+    mongoose.connect('mongodb://127.0.0.1:27017/proyecto')
+        .then(() => console.log("MongoDB Conectado"))
+        .catch(err => console.error("Error de conexión:", err));
+}
 
 
 const ProductSchema = new mongoose.Schema({
@@ -87,7 +90,13 @@ app.get('/api/catalog/products', async (req, res) => {
     }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Microservicio Catálogo (Express) listo en puerto ${PORT}`);
-});
+// Exporta app para testing
+module.exports = app;
+
+// Inicia el servidor solo si no estamos en ambiente de test
+const PORT = process.env.PORT || 3000;
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Microservicio Catálogo (Express) listo en puerto ${PORT}`);
+    });
+}

@@ -21,5 +21,5 @@ from profiles.views import profile_handler
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Ruta dinámica: api/users/profile/1, api/users/profile/2, etc.
-    path('api/users/profile/<int:user_id>', profile_handler),
+    path('api/users/profile/<int:user_id>', profile_handler, name='profile_handler'),
 ]
