@@ -1,0 +1,90 @@
+services:
+  # --- INFRAESTRUCTURA DE DATOS (BASES DE DATOS) ---
+  
+  db_mysql:
+    image: mysql:8.0
+    container_name: db_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: laravel_db
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3307:3306" # Puerto 3307 hacia afuera para evitar conflictos con tu Windows
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  db_postgres:
+    image: postgres:15
+    container_name: db_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: django_db
+      POSTGRES_USER: user_admin
+      POSTGRES_PASSWORD: postgres_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  db_mongodb:
+    image: mongo:latest
+    container_name: db_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # --- ORQUESTACIÓN DE MICROSERVICIOS ---
+
+  # 1. API GATEWAY (LARAVEL)
+  api_gateway:
+    build: ./api-gateway
+    container_name: ms_laravel
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_mysql
+    environment:
+      - DB_HOST=db_mysql
+      - DB_PORT=3306
+
+  # 2. PERFILES (DJANGO)
+  ms_django:
+    build: ./ms_django
+    container_name: ms_django
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db_postgres
+    environment:
+      - DB_HOST=db_postgres
+
+  # 3. CATÁLOGO (EXPRESS)
+  ms_express:
+    build: ./ms_express
+    container_name: ms_express
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db_mongodb
+
+  # 4. LÓGICA / IVA (FASTAPI)
+  ms_fastapi:
+    build: ./ms_fastapi
+    container_name: ms_fastapi
+    ports:
+      - "8050:8050"
+
+  # 5. AUDITORÍA (FLASK)
+  ms_flask:
+    build: ./ms_flask
+    container_name: ms_flask
+    ports:
+      - "5000:5000"
+
+# Persistencia de datos
+volumes:
+  mysql_data:
+  postgres_data:
+  mongo_data:

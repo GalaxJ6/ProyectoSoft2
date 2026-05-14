@@ -1,0 +1,10 @@
+.git
+.gitignore
+.editorconfig
+.env
+.env.example
+README.md
+tests/
+node_modules/
+npm-debug.log*
+.DS_Store

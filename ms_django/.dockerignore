@@ -1,0 +1,11 @@
+.git
+.gitignore
+.editorconfig
+.env
+README.md
+tests/
+*.pyc
+__pycache__/
+.pytest_cache/
+.DS_Store
+db.sqlite3
