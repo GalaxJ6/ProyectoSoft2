@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -36,7 +37,8 @@ def profile_handler(request, user_id):
 
         # Informar a Flask (MS_NOTIFY) sobre cambios en datos de perfil
         try:
-            requests.post('http://127.0.0.1:5000/api/notify/user-data', json={
+            notify_url = os.environ.get('MS_NOTIFY_URL', 'http://ms_flask:5000')
+            requests.post(f'{notify_url}/api/notify/user-data', json={
                 'user_id': user_id,
                 'action': 'create' if created else 'update',
                 'fields': {

@@ -273,6 +273,179 @@ cd ProyectoSoft2
    - Crear base de datos: `proyecto_soft`
    - Usuario: `postgres`, contraseña: `password`
 
+> Antes de iniciar los contenedores, asegúrate de tener el archivo de configuración de Laravel.
+> Si no existe `api-gateway/.env`, copia el ejemplo:
+>
+> ```powershell
+> cd api-gateway
+> copy .env.example .env
+> cd ..
+> ```
+>
+> Este archivo se monta en el contenedor y es necesario para que `php artisan key:generate` funcione.
+
+### Despliegue con Docker Compose
+
+La orquestación completa está definida en `docker-compose.yml`.
+
+1. Ubícate en la raíz del repositorio:
+
+```bash
+cd ProyectoSoft2
+```
+
+2. Construir las imágenes y levantar los contenedores:
+
+```bash
+docker compose build
+# o si tu versión usa el comando clásico:
+docker-compose build
+
+docker compose up -d
+# o con docker-compose:
+docker-compose up -d
+```
+
+3. Verificar que los contenedores estén en ejecución:
+
+```bash
+docker compose ps
+# o docker-compose ps
+```
+
+4. Verificar logs de arranque si algo falla:
+
+```bash
+docker compose logs -f
+# o docker-compose logs -f
+```
+
+5. Inicializar bases de datos y migraciones desde los contenedores:
+
+```bash
+# Si el archivo api-gateway/.env no existe, créalo antes de este paso:
+# cd api-gateway && copy .env.example .env && cd ..
+
+docker compose exec api_gateway php artisan key:generate
+
+docker compose exec api_gateway php artisan migrate
+
+docker compose exec ms_django python manage.py migrate
+```
+
+6. Si haces cambios de configuración o en los Dockerfiles, vuelve a crear los contenedores:
+
+```bash
+docker compose down
+# o docker-compose down
+
+docker compose up -d --build
+```
+
+### Pruebas de servicios una vez desplegados
+
+Después de levantar los contenedores, valida cada microservicio con estos comandos.
+
+- Verifica el API Gateway (requiere autenticación):
+
+  1. Registra un usuario:
+
+  ```bash
+  curl -X POST http://127.0.0.1:8000/api/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Test","email":"test@example.com","password":"secret123","password_confirmation":"secret123","security_question":"Mascota?","security_answer":"lobo"}'
+  ```
+
+  2. Inicia sesión y copia el token de la respuesta:
+
+  ```bash
+  curl -X POST http://127.0.0.1:8000/api/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"test@example.com","password":"secret123"}'
+  ```
+
+  3. Usa el token para verificar el endpoint protegido del API Gateway:
+
+  ```bash
+  curl -H "Authorization: Bearer <TOKEN>" http://127.0.0.1:8000/api/catalog/products
+  ```
+
+- Verifica el catálogo (Express):
+
+```bash
+curl http://127.0.0.1:3000/api/catalog/products
+```
+
+- Verifica el servicio de perfiles (Django):
+
+```bash
+curl http://127.0.0.1:8001/api/users/profile/1
+```
+
+- Verifica el servicio de lógica (FastAPI):
+
+```bash
+curl -X POST http://127.0.0.1:8050/api/logic/calculate-tax \
+  -H "Content-Type: application/json" \
+  -d '{"price": 100}'
+```
+
+- Verifica el servicio de auditoría (Flask):
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/notify/log \
+  -H "Content-Type: application/json" \
+  -d '{"event":"test","user_id":1,"details":"Prueba de log"}'
+```
+
+- Comprueba el estado de las bases de datos:
+
+```bash
+docker compose ps db_mysql db_postgres db_mongodb
+```
+
+### Prueba de flujo completo del API Gateway
+
+1. Registrar un usuario:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test","email":"test@example.com","password":"secret123","password_confirmation":"secret123","security_question":"Mascota?","security_answer":"lobo"}'
+```
+
+2. Iniciar sesión:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"secret123"}'
+```
+
+3. Crear un producto orquestado (usa el token recibido):
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/products \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{"name":"Producto A","price":100,"description":"Descripción prueba","stock":10,"category":"General","user_id":1}'
+```
+
+4. Consultar el catálogo final:
+
+```bash
+curl http://127.0.0.1:8000/api/catalog/products \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+### Nota
+
+- Si usas Windows y `curl` no está disponible, puedes usar Postman, Insomnia o la terminal de PowerShell con `Invoke-WebRequest`.
+- Si algún servicio no responde, revisa primero `docker compose logs -f <servicio>`.
+
+> Nota: desde tu máquina los servicios estarán disponibles en `http://127.0.0.1:<puerto>`.
+> Internamente entre contenedores, Docker usa los nombres de servicio `ms_django`, `ms_express`, `ms_fastapi` y `ms_flask`.
+
 ### Paso 3: Desplegar API Gateway (Laravel)
 
 ```bash
@@ -292,10 +465,10 @@ cp .env.example .env
 # DB_USERNAME=root
 # DB_PASSWORD=
 
-# MS_USERS_URL=http://localhost:8001/api
-# MS_CATALOG_URL=http://localhost:3000/api
-# MS_LOGIC_URL=http://localhost:8050/api
-# MS_NOTIFY_URL=http://localhost:5000
+# MS_USERS_URL=http://127.0.0.1:8001/api
+# MS_CATALOG_URL=http://127.0.0.1:3000/api
+# MS_LOGIC_URL=http://127.0.0.1:8050/api
+# MS_NOTIFY_URL=http://127.0.0.1:5000
 
 # Generar clave de aplicación
 php artisan key:generate
@@ -318,7 +491,7 @@ npm install
 # Iniciar servidor
 node index.js
 ```
-El servidor se ejecutará en http://localhost:3000
+El servidor se ejecutará en http://127.0.0.1:3000
 
 ### Paso 5: Desplegar MS Django (Python)
 
@@ -335,7 +508,7 @@ DATABASES = {
         'NAME': 'proyecto_soft',
         'USER': 'postgres',
         'PASSWORD': 'password',
-        'HOST': 'localhost',
+        'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
@@ -370,11 +543,11 @@ pip install flask flask-cors
 # Iniciar servidor
 python app.py
 ```
-El servidor se ejecutará en http://localhost:5000
+El servidor se ejecutará en http://127.0.0.1:5000
 
 ### Paso 8: Verificar Despliegue
 
-1. Acceder a http://localhost:8000 para verificar API Gateway
+1. Acceder a http://127.0.0.1:8000 para verificar API Gateway
 2. Probar endpoints con herramientas como Postman o Thunder Client
 3. Ejecutar pruebas de Locust: `locust -f locustfile.py`
 

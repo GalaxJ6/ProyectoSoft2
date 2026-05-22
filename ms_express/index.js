@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -6,9 +8,12 @@ const app = express();
 app.use(express.json()); 
 app.use(cors());         
 
+const mongoUri = process.env.MONGO_URI || 'mongodb://db_mongodb:27017/proyecto';
+console.log(`MongoDB URI usada: ${mongoUri}`);
+
 // Solo conectar a MongoDB si no estamos en ambiente de test
 if (process.env.NODE_ENV !== 'test') {
-    mongoose.connect('mongodb://127.0.0.1:27017/proyecto')
+    mongoose.connect(mongoUri)
         .then(() => console.log("MongoDB Conectado"))
         .catch(err => console.error("Error de conexión:", err));
 }

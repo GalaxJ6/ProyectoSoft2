@@ -45,9 +45,24 @@ services:
       - "8000:8000"
     depends_on:
       - db_mysql
+      - ms_django
+      - ms_express
+      - ms_fastapi
+      - ms_flask
     environment:
+      - APP_URL=http://localhost:8000
+      - DB_CONNECTION=mysql
       - DB_HOST=db_mysql
       - DB_PORT=3306
+      - DB_DATABASE=laravel_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=root_password
+      - MS_USERS_URL=http://ms_django:8001/api
+      - MS_CATALOG_URL=http://ms_express:3000/api
+      - MS_LOGIC_URL=http://ms_fastapi:8050/api
+      - MS_NOTIFY_URL=http://ms_flask:5000
+    volumes:
+      - ./api-gateway/.env:/var/www/html/.env
 
   # 2. PERFILES (DJANGO)
   ms_django:
@@ -59,6 +74,11 @@ services:
       - db_postgres
     environment:
       - DB_HOST=db_postgres
+      - DB_PORT=5432
+      - POSTGRES_DB=django_db
+      - POSTGRES_USER=user_admin
+      - POSTGRES_PASSWORD=postgres_password
+      - MS_NOTIFY_URL=http://ms_flask:5000
 
   # 3. CATÁLOGO (EXPRESS)
   ms_express:
@@ -68,6 +88,8 @@ services:
       - "3000:3000"
     depends_on:
       - db_mongodb
+    environment:
+      - MONGO_URI=mongodb://db_mongodb:27017/proyecto
 
   # 4. LÓGICA / IVA (FASTAPI)
   ms_fastapi:

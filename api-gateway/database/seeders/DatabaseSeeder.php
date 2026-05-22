@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'security_question' => '¿Cuál es tu mascota?',
+            'security_answer' => bcrypt('perro'),
         ]);
     }
 }

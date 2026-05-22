@@ -23,9 +23,9 @@ class ProductController extends Controller
         ]);
 
         try {
-            // LLAMADA A FASTAPI (MS_LOGIC - Puerto 8050)
+            // LLAMADA A FASTAPI (MS_LOGIC)
             // Enviamos el precio para calcular el IVA del 19%
-            $logicResponse = Http::post('http://127.0.0.1:8050/api/logic/calculate-tax', [
+            $logicResponse = Http::post(env('MS_LOGIC_URL', 'http://ms_fastapi:8050/api') . '/logic/calculate-tax', [
                 'price' => $data['price']
             ]);
 
@@ -34,9 +34,9 @@ class ProductController extends Controller
                 $data['price'] = $logicResponse->json()['total_price'];
             }
 
-            // LLAMADA A EXPRESS (MS_CATALOG - Puerto 3000)
+            // LLAMADA A EXPRESS (MS_CATALOG)
             // Enviamos el producto final para persistencia en MongoDB 
-            $catalogResponse = Http::post('http://127.0.0.1:3000/api/catalog/products', $data);
+            $catalogResponse = Http::post(env('MS_CATALOG_URL', 'http://ms_express:3000/api') . '/products', $data);
 
             if ($catalogResponse->failed()) {
                 return response()->json(['error' => 'Error al guardar en el catálogo de MongoDB'], 500);
